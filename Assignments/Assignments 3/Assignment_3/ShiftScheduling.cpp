@@ -1,14 +1,52 @@
 #include "ShiftScheduling.h"
+#include "error.h"
+#include "set.h"
+#include "map.h"
 using namespace std;
 
 /* TODO: Refer to ShiftScheduling.h for more information about what this function should do.
  * Then, delete this comment and replace it with one of your own.
  */
+
+
+int valueOfSet(Set<Shift> s) {
+    int value = 0;
+    for (Shift elem:s){
+        value += valueOf(elem);
+    }
+    return value;
+}
+
+Set<Shift> helper(const Set<Shift> remaining, const Set<Shift> sofar, int maxHours) {
+    if (remaining.isEmpty()) return sofar;
+    Shift now = remaining.first();
+    int flag = 0;int time = maxHours;
+    for (Shift s:sofar) {
+        if (overlapsWith(now, s)){
+            flag = 1;break;
+        }
+    }
+    time -= lengthOf(now);
+    Set<Shift> left,right;
+    if (!flag && time >= 0) {//没有重叠
+        left = helper(remaining - now,sofar + now, maxHours - lengthOf(now));
+    }
+    //有两种选择：您可以让员工轮班，或者不让员工轮班。
+    //这两个选项中的一个将比另一个更好，或者它们将与产生多少价值挂钩。
+    //在您尝试之前，您不会知道哪个更好，因此（递归地）探索这两个选项并报告哪个选项会带来更多价值。
+    right = helper(remaining - now, sofar, maxHours); //sofar加now和不加now都要考虑进去
+    if (valueOfSet(left) > valueOfSet(right)) return left;
+    else return right;
+
+}
+
 Set<Shift> highestValueScheduleFor(const Set<Shift>& shifts, int maxHours) {
-    /* TODO: Delete the next few lines and implement this function. */
-    (void) shifts;
-    (void) maxHours;
-    return {};
+    if (maxHours < 0) error("it should be positive.");
+    else {
+        Set<Shift> sofar = {};
+        return helper(shifts, sofar, maxHours);
+    }
+
 }
 
 
